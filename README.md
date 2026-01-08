@@ -654,5 +654,75 @@ This enables:
 
 ---
 
+## Legal Disclaimer
+
+### RSS Feed Usage
+
+This application aggregates content from publicly available RSS feeds for **research, educational, and analytical purposes**. RSS (Really Simple Syndication) feeds are designed by publishers for content syndication and third-party consumption.
+
+**How this application handles content:**
+- Fetches only publicly available RSS feeds
+- Displays article headlines and brief summaries
+- Always links back to original source articles
+- Does not store or republish full article content
+- Uses AI to generate analytical summaries (transformative use)
+
+### User Responsibilities
+
+By using this software, you agree to:
+
+1. **Respect Source Terms of Service**: Some publishers may have specific terms regarding automated access. Users are responsible for reviewing and complying with individual source ToS.
+
+2. **Non-Commercial Use**: This software is provided for research and internal analysis. Commercial redistribution of aggregated content may require licensing agreements with content providers.
+
+3. **Attribution**: Always maintain links to original sources. Do not remove or obscure source attribution.
+
+4. **Rate Limiting**: The default 30-minute fetch interval is designed to be respectful to source servers. Do not modify settings to aggressively scrape sources.
+
+### Content Ownership
+
+- All aggregated articles remain the intellectual property of their respective publishers
+- AI-generated summaries are analytical derivatives for research purposes
+- This software does not claim ownership of any aggregated content
+
+### No Warranty
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. THE AUTHORS ARE NOT RESPONSIBLE FOR:
+- Accuracy of aggregated content
+- Availability of source feeds
+- Any legal issues arising from misuse of this software
+- Decisions made based on aggregated intelligence
+
+### Recommended Sources
+
+For compliant usage, prioritize:
+- Government and official sources (public domain)
+- Sources with explicit RSS syndication policies
+- Creative Commons licensed content
+- Sources that encourage aggregation
+
+### GDELT Notice
+
+This application integrates with GDELT (Global Database of Events, Language, and Tone), which is a free, open platform supported by Google Jigsaw. GDELT data is available for unrestricted use.
+
+---
+
+## License
+
+MIT License - See LICENSE file for details.
+
+This license applies to the **software code only**, not to any content aggregated through RSS feeds.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please ensure any new sources added are:
+- Publicly available RSS feeds
+- From reputable publishers
+- Compliant with the source's terms of service
+
+---
+
 **Strategic Intelligence Bureau v1.0.0**
 *Defence Intelligence Platform*
