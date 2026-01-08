@@ -79,10 +79,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-army-sand via-army-cream to-army-khaki-light flex">
-      {/* Left Panel - Army Imagery */}
+      {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 bg-army-olive">
-          {/* Army themed background pattern */}
+          {/* Background pattern */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
@@ -92,7 +92,7 @@ export default function Login() {
             </svg>
           </div>
 
-          {/* Ashoka Chakra inspired design */}
+          {/* Globe design */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="w-64 h-64 rounded-full border-8 border-army-gold opacity-20"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border-4 border-army-gold opacity-30"></div>
@@ -102,7 +102,7 @@ export default function Login() {
         {/* Content overlay */}
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
           <div className="text-center">
-            {/* Indian Army Emblem placeholder */}
+            {/* Logo */}
             <div className="w-32 h-32 mx-auto mb-8 bg-army-gold rounded-full flex items-center justify-center shadow-2xl">
               <svg className="w-20 h-20 text-army-olive" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -110,20 +110,20 @@ export default function Login() {
             </div>
 
             <h1 className="text-4xl font-bold font-['Roboto_Condensed'] tracking-wide mb-4">
-              STRATEGIC INTELLIGENCE
+              GEONEWS
             </h1>
             <h2 className="text-2xl font-['Roboto_Condensed'] text-army-gold mb-6">
-              BUREAU
+              INTELLIGENCE
             </h2>
             <div className="w-24 h-1 bg-army-gold mx-auto mb-6"></div>
             <p className="text-lg text-army-khaki-light max-w-md">
-              Defence & Geopolitical News Intelligence Platform
+              Geopolitical News Intelligence Platform
             </p>
 
-            {/* Motto */}
+            {/* Tagline */}
             <div className="mt-12 border-t border-b border-army-gold/30 py-4">
               <p className="text-army-gold font-['Roboto_Condensed'] text-xl tracking-widest">
-                "SERVICE BEFORE SELF"
+                "GLOBAL INSIGHT • STRATEGIC INTELLIGENCE"
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function Login() {
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-army-olive font-['Roboto_Condensed']">
-              STRATEGIC INTELLIGENCE BUREAU
+              GEONEWS INTELLIGENCE
             </h1>
           </div>
 
@@ -284,7 +284,7 @@ export default function Login() {
 
           {/* Footer */}
           <p className="mt-6 text-center text-sm text-gray-500">
-            Defence & Strategic Intelligence Platform
+            Geopolitical Intelligence Platform
           </p>
         </div>
       </div>

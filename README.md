@@ -1,10 +1,10 @@
-# Strategic Intelligence Bureau (SIB)
+# GeoNews Intelligence
 ## AI-Powered Geopolitical News Aggregator
 
-A production-ready, Docker-based news aggregation platform with AI-powered strategic analysis. Designed for defence analysts, military officers, policy researchers, and think-tank members.
+A production-ready, Docker-based news aggregation platform with AI-powered strategic analysis. Designed for analysts, researchers, policy experts, and think-tank members.
 
 **Features:**
-- Indian Army-inspired UI theme (light mode)
+- Clean, professional UI theme (light mode)
 - Role-based access control (Admin, Analyst, Viewer)
 - AI-powered strategic summaries using Groq/Llama 3.1
 - Interactive geopolitical map
@@ -82,7 +82,7 @@ curl -X POST http://localhost:8000/api/sources/fetch-all
 
 #### Accessing the Login Page
 
-Navigate to **http://localhost:5173** to see the login screen with the Strategic Intelligence Bureau branding.
+Navigate to **http://localhost:5173** to see the login screen.
 
 #### Quick Login (Demo Accounts)
 
@@ -408,7 +408,7 @@ To upgrade a user's role:
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| UI Theme | Indian Army-inspired (Olive, Khaki, Maroon, Gold) |
+| UI Theme | Professional (Olive, Khaki, Maroon, Gold) |
 | Backend | FastAPI, Python 3.11, SQLAlchemy |
 | Database | PostgreSQL 16 |
 | Cache/Queue | Redis 7, Celery |
@@ -724,5 +724,5 @@ Contributions are welcome! Please ensure any new sources added are:
 
 ---
 
-**Strategic Intelligence Bureau v1.0.0**
-*Defence Intelligence Platform*
+**GeoNews Intelligence v1.0.0**
+*Geopolitical Intelligence Platform*

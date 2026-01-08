@@ -89,7 +89,7 @@ export default function Register() {
             <Shield className="w-12 h-12 text-army-gold" />
           </div>
           <h1 className="text-2xl font-bold text-army-olive font-['Roboto_Condensed'] uppercase tracking-wide">
-            Strategic Intelligence Bureau
+            GeoNews Intelligence
           </h1>
           <p className="text-gray-600 mt-1">Create your secure account</p>
         </div>

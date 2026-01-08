@@ -35,10 +35,10 @@ export default function Sidebar() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-white font-['Roboto_Condensed'] tracking-wide">
-            SIB
+            GEONEWS
           </h1>
           <p className="text-xs text-army-khaki-light uppercase tracking-wider">
-            Strategic Intel Bureau
+            Intelligence Platform
           </p>
         </div>
       </div>
@@ -89,8 +89,8 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-army-olive-light/20 bg-army-olive-dark/30">
         <div className="px-2 text-xs text-army-khaki-light">
-          <p className="font-semibold uppercase tracking-wide">Defence Intelligence</p>
-          <p className="mt-1 opacity-70">v1.0.0 | Classified</p>
+          <p className="font-semibold uppercase tracking-wide">GeoNews Intelligence</p>
+          <p className="mt-1 opacity-70">v1.0.0 | Strategic Platform</p>
         </div>
       </div>
     </aside>
