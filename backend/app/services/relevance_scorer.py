@@ -12,6 +12,14 @@ class RelevanceScorer:
     Combines rule-based scoring with keyword analysis.
     """
 
+    # HIGHEST PRIORITY - India and immediate neighbors (always prioritize)
+    INDIA_NEIGHBORS = [
+        "india", "indian", "pakistan", "pakistani", "china", "chinese",
+        "bangladesh", "bangladeshi", "nepal", "nepalese", "nepali",
+        "sri lanka", "sri lankan", "myanmar", "burmese",
+        "afghanistan", "afghan", "maldives", "maldivian", "bhutan", "bhutanese"
+    ]
+
     # Geographic relevance keywords (India-centric)
     GEO_KEYWORDS = {
         "high": [
@@ -97,12 +105,21 @@ class RelevanceScorer:
         self.economic_weight = settings.economic_weight
 
     def _count_keyword_matches(self, text: str, keywords: Dict[str, list]) -> Tuple[int, int, int]:
-        """Count high, medium, and low priority keyword matches"""
+        """Count high, medium, and low priority keyword matches using word boundaries"""
         text_lower = text.lower()
 
-        high_count = sum(1 for kw in keywords.get("high", []) if kw in text_lower)
-        medium_count = sum(1 for kw in keywords.get("medium", []) if kw in text_lower)
-        low_count = sum(1 for kw in keywords.get("low", []) if kw in text_lower)
+        def count_with_boundary(keyword_list):
+            count = 0
+            for kw in keyword_list:
+                # Use word boundary matching to avoid false positives
+                pattern = r'\b' + re.escape(kw) + r'\b'
+                if re.search(pattern, text_lower):
+                    count += 1
+            return count
+
+        high_count = count_with_boundary(keywords.get("high", []))
+        medium_count = count_with_boundary(keywords.get("medium", []))
+        low_count = count_with_boundary(keywords.get("low", []))
 
         return high_count, medium_count, low_count
 
@@ -119,15 +136,27 @@ class RelevanceScorer:
 
         return round(normalized, 3)
 
+    def _is_india_neighbor_article(self, text: str) -> bool:
+        """Check if article mentions India or its neighbors"""
+        text_lower = text.lower()
+        for keyword in self.INDIA_NEIGHBORS:
+            pattern = r'\b' + re.escape(keyword) + r'\b'
+            if re.search(pattern, text_lower):
+                return True
+        return False
+
     def calculate_scores(self, title: str, content: str) -> Dict[str, float]:
         """
         Calculate all relevance scores for an article.
 
         Returns:
             Dict with geo_score, military_score, diplomatic_score,
-            economic_score, relevance_score, and relevance_level
+            economic_score, relevance_score, relevance_level, and is_priority
         """
         full_text = f"{title} {content}"
+
+        # Check if this is about India or neighbors (HIGHEST PRIORITY)
+        is_priority = self._is_india_neighbor_article(full_text)
 
         # Calculate individual category scores
         geo_score = self._calculate_category_score(full_text, self.GEO_KEYWORDS)
@@ -143,15 +172,26 @@ class RelevanceScorer:
             economic_score * self.economic_weight
         )
 
-        relevance_score = round(relevance_score, 3)
+        # BOOST score for India and neighbors - these are always priority
+        if is_priority:
+            relevance_score = max(relevance_score, 0.4)  # Minimum score for priority countries
+            # Additional boost if military/security related
+            if military_score > 0.1:
+                relevance_score = max(relevance_score, 0.6)
+
+        relevance_score = round(min(relevance_score, 1.0), 3)
 
         # Determine relevance level (adjusted thresholds)
-        if relevance_score >= 0.3:
-            relevance_level = "high"
+        if relevance_score >= 0.3 or is_priority:
+            relevance_level = "high" if relevance_score >= 0.3 else "medium"
         elif relevance_score >= 0.15:
             relevance_level = "medium"
         else:
             relevance_level = "low"
+
+        # Priority articles are at least medium
+        if is_priority and relevance_level == "low":
+            relevance_level = "medium"
 
         return {
             "geo_score": geo_score,
@@ -159,7 +199,8 @@ class RelevanceScorer:
             "diplomatic_score": diplomatic_score,
             "economic_score": economic_score,
             "relevance_score": relevance_score,
-            "relevance_level": relevance_level
+            "relevance_level": relevance_level,
+            "is_priority": is_priority
         }
 
     def is_strategically_relevant(self, title: str, content: str, threshold: float = 0.2) -> bool:
@@ -173,41 +214,128 @@ class RelevanceScorer:
         """
         text = f"{title} {content}".lower()
 
-        # Region detection
+        # Region detection with word boundaries
         region = "Global"
         region_keywords = {
-            "South Asia": ["india", "pakistan", "bangladesh", "nepal", "sri lanka", "bhutan", "maldives", "kashmir", "ladakh"],
-            "East Asia": ["china", "japan", "korea", "taiwan", "hong kong", "beijing", "tokyo", "seoul", "pyongyang"],
-            "Indo-Pacific": ["indo-pacific", "quad", "aukus", "pacific", "asean", "south china sea", "andaman"],
-            "Middle East": ["iran", "israel", "saudi", "uae", "iraq", "syria", "gaza", "yemen", "gulf"],
-            "Europe": ["nato", "russia", "ukraine", "eu", "european", "moscow", "kyiv", "london", "paris", "berlin"],
-            "Central Asia": ["afghanistan", "kazakhstan", "uzbekistan", "tajikistan", "turkmenistan"],
-            "Africa": ["africa", "african", "egypt", "libya", "sudan", "ethiopia", "nigeria", "kenya"],
-            "Americas": ["america", "usa", "us ", "washington", "pentagon", "canada", "mexico", "brazil"],
+            "South Asia": ["india", "pakistan", "bangladesh", "nepal", "sri lanka", "bhutan", "maldives", "kashmir", "ladakh", "indian", "pakistani"],
+            "East Asia": ["china", "japan", "korea", "taiwan", "hong kong", "beijing", "tokyo", "seoul", "pyongyang", "chinese", "japanese", "korean"],
+            "Indo-Pacific": ["indo-pacific", "quad", "aukus", "pacific", "asean", "south china sea", "andaman", "indian ocean"],
+            "Middle East": ["iran", "israel", "saudi", "uae", "iraq", "syria", "gaza", "yemen", "gulf", "lebanon", "jordan", "iranian", "israeli", "palestinian"],
+            "Europe": ["nato", "russia", "ukraine", "eu", "european", "moscow", "kyiv", "london", "paris", "berlin", "russian", "ukrainian", "british", "french", "german"],
+            "Central Asia": ["afghanistan", "kazakhstan", "uzbekistan", "tajikistan", "turkmenistan", "kyrgyzstan", "afghan"],
+            "Africa": ["africa", "african", "egypt", "libya", "sudan", "ethiopia", "nigeria", "kenya", "south africa", "egyptian"],
+            "Americas": ["america", "american", "usa", "washington", "pentagon", "canada", "mexico", "brazil", "canadian", "united states"],
         }
         for reg, keywords in region_keywords.items():
-            if any(kw in text for kw in keywords):
-                region = reg
+            for kw in keywords:
+                pattern = r'\b' + re.escape(kw) + r'\b'
+                if re.search(pattern, text):
+                    region = reg
+                    break
+            if region != "Global":
                 break
 
-        # Country detection (primary)
+        # Country detection (primary) - expanded list
         country = ""
         country_keywords = {
-            "India": ["india", "indian", "delhi", "modi", "rajnath"],
-            "China": ["china", "chinese", "beijing", "xi jinping", "pla"],
-            "Pakistan": ["pakistan", "pakistani", "islamabad", "rawalpindi"],
-            "Russia": ["russia", "russian", "moscow", "putin", "kremlin"],
-            "USA": ["usa", "united states", "america", "washington", "pentagon", "biden"],
-            "Ukraine": ["ukraine", "ukrainian", "kyiv", "zelensky"],
-            "Taiwan": ["taiwan", "taiwanese", "taipei"],
-            "Iran": ["iran", "iranian", "tehran", "khamenei"],
-            "Israel": ["israel", "israeli", "tel aviv", "netanyahu", "idf"],
+            # South Asia
+            "India": ["india", "indian", "delhi", "mumbai", "modi", "rajnath", "jaishankar", "new delhi"],
+            "Pakistan": ["pakistan", "pakistani", "islamabad", "rawalpindi", "karachi", "lahore"],
+            "Bangladesh": ["bangladesh", "bangladeshi", "dhaka", "hasina"],
+            "Nepal": ["nepal", "nepalese", "nepali", "kathmandu"],
+            "Sri Lanka": ["sri lanka", "sri lankan", "colombo", "srilanka"],
+            "Maldives": ["maldives", "maldivian", "male"],
+            "Bhutan": ["bhutan", "bhutanese", "thimphu"],
+            "Afghanistan": ["afghanistan", "afghan", "kabul", "taliban"],
+            # East Asia
+            "China": ["china", "chinese", "beijing", "xi jinping", "pla", "ccp", "prc"],
+            "Japan": ["japan", "japanese", "tokyo", "kishida"],
+            "South Korea": ["south korea", "korean", "seoul", "rok"],
             "North Korea": ["north korea", "dprk", "pyongyang", "kim jong"],
-            "Japan": ["japan", "japanese", "tokyo"],
+            "Taiwan": ["taiwan", "taiwanese", "taipei"],
+            "Mongolia": ["mongolia", "mongolian", "ulaanbaatar"],
+            # Southeast Asia
+            "Myanmar": ["myanmar", "burmese", "naypyidaw", "yangon", "burma"],
+            "Thailand": ["thailand", "thai", "bangkok"],
+            "Vietnam": ["vietnam", "vietnamese", "hanoi", "ho chi minh"],
+            "Indonesia": ["indonesia", "indonesian", "jakarta"],
+            "Malaysia": ["malaysia", "malaysian", "kuala lumpur"],
+            "Philippines": ["philippines", "filipino", "manila", "marcos"],
+            "Singapore": ["singapore", "singaporean"],
+            "Cambodia": ["cambodia", "cambodian", "phnom penh"],
+            # Middle East
+            "Iran": ["iran", "iranian", "tehran", "khamenei", "raisi"],
+            "Israel": ["israel", "israeli", "tel aviv", "netanyahu", "idf", "jerusalem"],
+            "Palestine": ["palestine", "palestinian", "gaza", "west bank", "hamas"],
+            "Saudi Arabia": ["saudi", "riyadh", "mbs", "saudi arabia"],
+            "UAE": ["uae", "emirates", "dubai", "abu dhabi", "emirati"],
+            "Turkey": ["turkey", "turkish", "ankara", "erdogan", "turkiye"],
+            "Iraq": ["iraq", "iraqi", "baghdad"],
+            "Syria": ["syria", "syrian", "damascus", "assad"],
+            "Yemen": ["yemen", "yemeni", "sanaa", "houthi"],
+            "Lebanon": ["lebanon", "lebanese", "beirut", "hezbollah"],
+            "Jordan": ["jordan", "jordanian", "amman"],
+            "Qatar": ["qatar", "qatari", "doha"],
+            "Kuwait": ["kuwait", "kuwaiti"],
+            "Oman": ["oman", "omani", "muscat"],
+            "Bahrain": ["bahrain", "bahraini", "manama"],
+            # Europe
+            "Russia": ["russia", "russian", "moscow", "putin", "kremlin"],
+            "Ukraine": ["ukraine", "ukrainian", "kyiv", "zelensky", "kiev"],
+            "United Kingdom": ["britain", "british", "uk", "london", "england", "united kingdom"],
+            "Germany": ["germany", "german", "berlin", "scholz"],
+            "France": ["france", "french", "paris", "macron"],
+            "Italy": ["italy", "italian", "rome"],
+            "Poland": ["poland", "polish", "warsaw"],
+            "Spain": ["spain", "spanish", "madrid"],
+            "Netherlands": ["netherlands", "dutch", "amsterdam", "hague"],
+            "Belgium": ["belgium", "belgian", "brussels"],
+            "Greece": ["greece", "greek", "athens"],
+            "Serbia": ["serbia", "serbian", "belgrade"],
+            "Hungary": ["hungary", "hungarian", "budapest", "orban"],
+            "Romania": ["romania", "romanian", "bucharest"],
+            "Belarus": ["belarus", "belarusian", "minsk", "lukashenko"],
+            "Finland": ["finland", "finnish", "helsinki"],
+            "Sweden": ["sweden", "swedish", "stockholm"],
+            "Norway": ["norway", "norwegian", "oslo"],
+            # Americas
+            "USA": ["usa", "united states", "america", "washington", "pentagon", "biden", "u.s.", "american"],
+            "Canada": ["canada", "canadian", "ottawa", "trudeau"],
+            "Mexico": ["mexico", "mexican", "mexico city"],
+            "Brazil": ["brazil", "brazilian", "brasilia", "lula"],
+            "Argentina": ["argentina", "argentine", "buenos aires"],
+            "Colombia": ["colombia", "colombian", "bogota"],
+            "Venezuela": ["venezuela", "venezuelan", "caracas", "maduro"],
+            "Cuba": ["cuba", "cuban", "havana"],
+            # Africa
+            "Egypt": ["egypt", "egyptian", "cairo", "sisi"],
+            "South Africa": ["south africa", "south african", "pretoria", "johannesburg"],
+            "Nigeria": ["nigeria", "nigerian", "abuja", "lagos"],
+            "Kenya": ["kenya", "kenyan", "nairobi"],
+            "Ethiopia": ["ethiopia", "ethiopian", "addis ababa"],
+            "Sudan": ["sudan", "sudanese", "khartoum"],
+            "Libya": ["libya", "libyan", "tripoli"],
+            "Morocco": ["morocco", "moroccan", "rabat"],
+            "Algeria": ["algeria", "algerian", "algiers"],
+            # Central Asia
+            "Kazakhstan": ["kazakhstan", "kazakh", "astana", "almaty"],
+            "Uzbekistan": ["uzbekistan", "uzbek", "tashkent"],
+            "Turkmenistan": ["turkmenistan", "turkmen", "ashgabat"],
+            "Tajikistan": ["tajikistan", "tajik", "dushanbe"],
+            "Kyrgyzstan": ["kyrgyzstan", "kyrgyz", "bishkek"],
+            # Oceania
+            "Australia": ["australia", "australian", "canberra", "sydney"],
+            "New Zealand": ["new zealand", "kiwi", "wellington", "auckland"],
         }
+
+        # Use word boundary matching for country detection
         for ctry, keywords in country_keywords.items():
-            if any(kw in text for kw in keywords):
-                country = ctry
+            for kw in keywords:
+                pattern = r'\b' + re.escape(kw) + r'\b'
+                if re.search(pattern, text):
+                    country = ctry
+                    break
+            if country:
                 break
 
         # Theme detection

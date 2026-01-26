@@ -109,15 +109,12 @@ export default function Login() {
               </svg>
             </div>
 
-            <h1 className="text-4xl font-bold font-['Roboto_Condensed'] tracking-wide mb-4">
-              GEONEWS
+            <h1 className="text-5xl font-bold tracking-wide mb-6">
+              प्रज्ञा
             </h1>
-            <h2 className="text-2xl font-['Roboto_Condensed'] text-army-gold mb-6">
-              INTELLIGENCE
-            </h2>
             <div className="w-24 h-1 bg-army-gold mx-auto mb-6"></div>
             <p className="text-lg text-army-khaki-light max-w-md">
-              Geopolitical News Intelligence Platform
+              Geopolitical News Aggregator
             </p>
 
             {/* Tagline */}
@@ -140,8 +137,8 @@ export default function Login() {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-army-olive font-['Roboto_Condensed']">
-              GEONEWS INTELLIGENCE
+            <h1 className="text-3xl font-bold text-army-olive">
+              प्रज्ञा
             </h1>
           </div>
 
@@ -220,7 +217,7 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="mt-4 grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleQuickLogin('admin', 'admin123')}
                     disabled={isLoading}
@@ -234,13 +231,6 @@ export default function Login() {
                     className="py-2 px-3 bg-army-olive hover:bg-army-olive-light text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shadow"
                   >
                     Analyst
-                  </button>
-                  <button
-                    onClick={() => handleQuickLogin('demo', 'demo123')}
-                    disabled={isLoading}
-                    className="py-2 px-3 bg-army-khaki hover:bg-army-khaki-dark text-army-olive-dark text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shadow"
-                  >
-                    Viewer
                   </button>
                 </div>
 
@@ -284,7 +274,7 @@ export default function Login() {
 
           {/* Footer */}
           <p className="mt-6 text-center text-sm text-gray-500">
-            Geopolitical Intelligence Platform
+            Geopolitical News Aggregator
           </p>
         </div>
       </div>

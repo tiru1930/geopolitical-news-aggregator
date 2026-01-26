@@ -7,6 +7,7 @@ for strategic/geopolitical relevance. Much more accurate than keyword matching.
 
 import json
 import logging
+import re
 import time
 from typing import Dict, Optional
 from groq import Groq
@@ -18,11 +19,14 @@ logger = logging.getLogger(__name__)
 _last_call_time = 0
 _min_call_interval = 0.5  # Min 500ms between calls to avoid rate limits
 
-# Priority countries - any news involving these should be HIGH relevance
-PRIORITY_COUNTRIES = [
-    "Pakistan", "China", "Bangladesh", "Nepal", "Sri Lanka",
+# HIGHEST PRIORITY - India and immediate neighbors (always show first)
+INDIA_NEIGHBORS = [
+    "India", "Pakistan", "China", "Bangladesh", "Nepal", "Sri Lanka",
     "Myanmar", "Afghanistan", "Maldives", "Bhutan"
 ]
+
+# Priority countries - any news involving these should be HIGH relevance
+PRIORITY_COUNTRIES = INDIA_NEIGHBORS
 
 # Strategic topics that should be HIGH relevance
 STRATEGIC_TOPICS = [
@@ -52,10 +56,10 @@ Analyze this news article and provide a JSON response with the following:
 3. **priority_reason**: Brief explanation of why this matters (or doesn't) for India
 
 4. **classification**:
-   - region: Geographic region (South Asia, East Asia, Indo-Pacific, Middle East, Europe, Central Asia, Africa, Americas, Global)
-   - country: Primary country involved
-   - theme: Main theme (Border Security, Maritime Security, Defense Technology, Nuclear Affairs, Terrorism, Cyber Security, Diplomacy, Economic Security, Great Power Competition, Regional Stability)
-   - domain: Domain (land, maritime, air, cyber, space, nuclear, diplomatic, economic, multi-domain)
+   - region: MUST be one of: South Asia, East Asia, Indo-Pacific, Middle East, Europe, Central Asia, Africa, Americas, Global
+   - country: The PRIMARY country this article is about. MUST use standard names: India, China, Pakistan, USA, Russia, Ukraine, Israel, Iran, Japan, South Korea, North Korea, Taiwan, Bangladesh, Nepal, Sri Lanka, Myanmar, Afghanistan, Turkey, Saudi Arabia, UAE, UK, Germany, France, etc. NEVER leave empty - identify the main country.
+   - theme: MUST be one of: Border Security, Maritime Security, Defense Technology, Nuclear Affairs, Terrorism, Cyber Security, Diplomacy, Economic Security, Great Power Competition, Regional Stability, Internal Security
+   - domain: MUST be one of: land, maritime, air, cyber, space, nuclear, diplomatic, economic, multi-domain
 
 5. **involves_priority_country**: true/false - Does this involve Pakistan, China, Bangladesh, Nepal, Sri Lanka, Myanmar, Afghanistan, or Maldives?
 
@@ -68,6 +72,8 @@ IMPORTANT RULES:
 - Arms deals, military exercises with/near India = HIGH relevance (0.6+)
 - US-China, US-Russia tensions affecting Indo-Pacific = MEDIUM-HIGH (0.5+)
 - Sports, entertainment, business (non-strategic) = LOW (0.1-0.2)
+
+CRITICAL: For the "country" field, you MUST identify the main country the article is about. Never leave it empty or null. If the article is about US-China relations, pick the PRIMARY country (usually the one in the headline). If truly global with no specific country, use "Global" but this should be rare.
 
 Article Title: {title}
 
@@ -90,18 +96,20 @@ class LLMScorer:
             self.client = Groq(api_key=settings.groq_api_key)
 
     def _quick_priority_check(self, text: str) -> bool:
-        """Quick check if text mentions priority countries"""
+        """Quick check if text mentions priority countries using word boundaries"""
         text_lower = text.lower()
         for country in PRIORITY_COUNTRIES:
-            if country.lower() in text_lower:
+            pattern = r'\b' + re.escape(country.lower()) + r'\b'
+            if re.search(pattern, text_lower):
                 return True
         return False
 
     def _quick_strategic_check(self, text: str) -> bool:
-        """Quick check if text mentions strategic topics"""
+        """Quick check if text mentions strategic topics using word boundaries"""
         text_lower = text.lower()
         for topic in STRATEGIC_TOPICS:
-            if topic in text_lower:
+            pattern = r'\b' + re.escape(topic) + r'\b'
+            if re.search(pattern, text_lower):
                 return True
         return False
 

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
-import { getHotspots, getRegionStats, getCountryStats } from '../services/api'
+import { getHotspots, getRegionStats, getCountryStats, getCountryHotspots } from '../services/api'
 import { ArrowUpRight, Globe2 } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
@@ -9,6 +9,11 @@ export default function Regions() {
   const { data: hotspots } = useQuery({
     queryKey: ['hotspots'],
     queryFn: getHotspots,
+  })
+
+  const { data: countryHotspots } = useQuery({
+    queryKey: ['country-hotspots'],
+    queryFn: () => getCountryHotspots(30),
   })
 
   const { data: regions } = useQuery({
@@ -33,10 +38,10 @@ export default function Regions() {
 
       {/* Map */}
       <div className="bg-white rounded-xl border-2 border-army-khaki/30 overflow-hidden shadow-sm">
-        <div className="h-96">
+        <div className="h-[500px]">
           <MapContainer
-            center={[20, 80]}
-            zoom={3}
+            center={[20, 60]}
+            zoom={2}
             className="h-full w-full"
             style={{ background: '#F4E9D8' }}
           >
@@ -44,26 +49,30 @@ export default function Regions() {
               attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {hotspots?.map((hotspot) => (
+            {/* Country Hotspots */}
+            {countryHotspots?.map((hotspot) => (
               <CircleMarker
-                key={hotspot.region}
+                key={hotspot.country}
                 center={[hotspot.lat, hotspot.lng]}
-                radius={Math.max(hotspot.high_relevance * 2, 10)}
+                radius={Math.min(Math.max(hotspot.total_articles * 1.5, 6), 25)}
                 pathOptions={{
-                  color: hotspot.intensity > 0.5 ? '#800020' : '#D4AF37',
-                  fillColor: hotspot.intensity > 0.5 ? '#800020' : '#D4AF37',
-                  fillOpacity: 0.5,
+                  color: hotspot.high_relevance > 3 ? '#800020' : hotspot.high_relevance > 0 ? '#D4AF37' : '#4A5D23',
+                  fillColor: hotspot.high_relevance > 3 ? '#800020' : hotspot.high_relevance > 0 ? '#D4AF37' : '#4A5D23',
+                  fillOpacity: 0.6,
                   weight: 2,
                 }}
               >
                 <Popup>
-                  <div className="text-center">
-                    <strong className="text-lg text-army-olive">{hotspot.region}</strong>
+                  <div className="text-center min-w-[120px]">
+                    <strong className="text-lg text-army-olive">{hotspot.country}</strong>
                     <p className="text-sm mt-1 text-gray-600">
                       {hotspot.total_articles} articles
-                      <br />
-                      {hotspot.high_relevance} critical priority
                     </p>
+                    {hotspot.high_relevance > 0 && (
+                      <p className="text-sm text-army-maroon font-medium">
+                        {hotspot.high_relevance} critical
+                      </p>
+                    )}
                   </div>
                 </Popup>
               </CircleMarker>
@@ -151,14 +160,18 @@ export default function Regions() {
         <div className="flex items-center gap-6 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-army-maroon opacity-70" />
-            <span className="text-sm text-gray-600">High Activity</span>
+            <span className="text-sm text-gray-600">Critical (4+ high priority)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-army-gold opacity-70" />
-            <span className="text-sm text-gray-600">Moderate Activity</span>
+            <span className="text-sm text-gray-600">Elevated (1-3 high priority)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Circle size = number of critical reports</span>
+            <div className="w-4 h-4 rounded-full bg-army-olive opacity-70" />
+            <span className="text-sm text-gray-600">Normal coverage</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Circle size = total articles</span>
           </div>
         </div>
       </div>

@@ -8,7 +8,6 @@ from app.database import Base
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     ANALYST = "analyst"
-    VIEWER = "viewer"
 
 
 class User(Base):
@@ -25,7 +24,7 @@ class User(Base):
     organization = Column(String(255), nullable=True)
 
     # Role and permissions
-    role = Column(Enum(UserRole), default=UserRole.VIEWER)
+    role = Column(Enum(UserRole), default=UserRole.ANALYST)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
 

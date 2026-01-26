@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, ForeignKey, Enum, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float, ForeignKey, Enum, JSON, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -9,6 +9,13 @@ class RelevanceLevel(str, enum.Enum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+# India and neighboring countries - highest priority
+INDIA_NEIGHBOR_COUNTRIES = [
+    "India", "Pakistan", "China", "Bangladesh", "Nepal",
+    "Sri Lanka", "Myanmar", "Afghanistan", "Maldives", "Bhutan"
+]
 
 
 class Article(Base):
@@ -41,6 +48,9 @@ class Article(Base):
     military_score = Column(Float, default=0.0)
     diplomatic_score = Column(Float, default=0.0)
     economic_score = Column(Float, default=0.0)
+
+    # Priority flag - True for India and neighboring countries
+    is_priority = Column(Boolean, default=False, index=True)
 
     # Classification
     region = Column(String(100), nullable=True, index=True)  # e.g., "Indo-Pacific", "South Asia"

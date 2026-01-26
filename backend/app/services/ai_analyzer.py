@@ -173,6 +173,49 @@ Only include significant entities. Types: country, leader, organization, militar
             logger.error(f"Error extracting entities: {e}")
             return []
 
+    # Valid values for classification
+    VALID_REGIONS = ["South Asia", "East Asia", "Indo-Pacific", "Middle East", "Europe", "Africa", "Americas", "Central Asia", "Global"]
+    VALID_THEMES = ["Great Power Competition", "Border Security", "Maritime Security", "Defense Technology", "Nuclear Affairs", "Terrorism", "Cyber Security", "Space", "Economic Security", "Diplomacy", "Internal Security", "General Security"]
+    VALID_DOMAINS = ["land", "maritime", "air", "cyber", "space", "nuclear", "diplomatic", "economic", "multi-domain"]
+
+    def _validate_and_normalize(self, value: str, valid_list: list, default: str) -> str:
+        """Validate and normalize a classification value"""
+        if not value or not isinstance(value, str):
+            return default
+        value = value.strip()
+        # Exact match
+        if value in valid_list:
+            return value
+        # Case-insensitive match
+        for valid in valid_list:
+            if value.lower() == valid.lower():
+                return valid
+        # Partial match
+        for valid in valid_list:
+            if value.lower() in valid.lower() or valid.lower() in value.lower():
+                return valid
+        return default
+
+    def _normalize_country(self, country: str) -> str:
+        """Normalize country names to standard format"""
+        if not country or not isinstance(country, str):
+            return ""
+        country = country.strip()
+        # Common normalizations
+        normalizations = {
+            "us": "USA", "u.s.": "USA", "u.s.a.": "USA", "united states": "USA", "america": "USA",
+            "uk": "United Kingdom", "u.k.": "United Kingdom", "britain": "United Kingdom", "great britain": "United Kingdom",
+            "prc": "China", "people's republic of china": "China",
+            "rok": "South Korea", "republic of korea": "South Korea",
+            "dprk": "North Korea", "democratic people's republic of korea": "North Korea",
+            "uae": "UAE", "united arab emirates": "UAE",
+            "ksa": "Saudi Arabia", "kingdom of saudi arabia": "Saudi Arabia",
+        }
+        lower = country.lower()
+        if lower in normalizations:
+            return normalizations[lower]
+        return country
+
     def classify_article(self, title: str, content: str) -> Dict[str, str]:
         """
         Classify article by region, theme, and domain.
@@ -181,20 +224,24 @@ Only include significant entities. Types: country, leader, organization, militar
             Dict with keys: region, country, theme, domain
         """
         system_prompt = """You are a geopolitical classification specialist.
-Classify news articles into predefined categories. Respond only with valid JSON."""
+Classify news articles into predefined categories. Respond only with valid JSON.
+IMPORTANT: You MUST choose values from the exact lists provided. Do not make up new categories."""
 
         prompt = f"""Classify this news article.
 
 Title: {title}
 Content: {content[:2000]}
 
-Respond with a JSON object:
+Respond with a JSON object. You MUST use these exact values:
+
 {{
-    "region": "one of: South Asia, East Asia, Indo-Pacific, Middle East, Europe, Africa, Americas, Central Asia, Global",
-    "country": "primary country mentioned (use standard name like China, India, Pakistan, etc.)",
-    "theme": "one of: Great Power Competition, Border Security, Maritime Security, Defense Technology, Nuclear Affairs, Terrorism, Cyber Security, Space, Economic Security, Diplomacy, Internal Security",
-    "domain": "one of: land, maritime, air, cyber, space, nuclear, diplomatic, economic, multi-domain"
-}}"""
+    "region": "MUST be one of: South Asia, East Asia, Indo-Pacific, Middle East, Europe, Africa, Americas, Central Asia, Global",
+    "country": "The PRIMARY country this article is about. Use standard names: India, China, Pakistan, USA, Russia, Ukraine, Israel, Iran, etc. If multiple countries, pick the main one.",
+    "theme": "MUST be one of: Great Power Competition, Border Security, Maritime Security, Defense Technology, Nuclear Affairs, Terrorism, Cyber Security, Space, Economic Security, Diplomacy, Internal Security",
+    "domain": "MUST be one of: land, maritime, air, cyber, space, nuclear, diplomatic, economic, multi-domain"
+}}
+
+If unsure about country, analyze which country is the PRIMARY subject of the article."""
 
         try:
             response = self._call_llm(prompt, system_prompt)
@@ -205,18 +252,25 @@ Respond with a JSON object:
                 response = response.split("```")[1].split("```")[0]
 
             result = json.loads(response.strip())
+
+            # Validate and normalize all fields
+            region = self._validate_and_normalize(result.get("region", ""), self.VALID_REGIONS, "Global")
+            country = self._normalize_country(result.get("country", ""))
+            theme = self._validate_and_normalize(result.get("theme", ""), self.VALID_THEMES, "General Security")
+            domain = self._validate_and_normalize(result.get("domain", ""), self.VALID_DOMAINS, "multi-domain")
+
             return {
-                "region": result.get("region", "Global"),
-                "country": result.get("country", ""),
-                "theme": result.get("theme", ""),
-                "domain": result.get("domain", "multi-domain")
+                "region": region,
+                "country": country,
+                "theme": theme,
+                "domain": domain
             }
         except Exception as e:
             logger.error(f"Error classifying article: {e}")
             return {
                 "region": "Global",
                 "country": "",
-                "theme": "",
+                "theme": "General Security",
                 "domain": "multi-domain"
             }
 

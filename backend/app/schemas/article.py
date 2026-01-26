@@ -48,6 +48,7 @@ class ArticleResponse(ArticleBase):
     military_score: float
     diplomatic_score: float
     economic_score: float
+    is_priority: bool = False  # True for India & neighboring countries
 
     # Classification
     region: Optional[str] = None

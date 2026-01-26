@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Shield } from 'lucide-react'
 
-type Role = 'viewer' | 'analyst' | 'admin'
+type Role = 'analyst' | 'admin'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -13,7 +13,7 @@ export default function Register() {
     confirmPassword: '',
     full_name: '',
     organization: '',
-    role: 'viewer' as Role,
+    role: 'analyst' as Role,
     invite_code: '',
   })
   const [error, setError] = useState('')
@@ -43,8 +43,8 @@ export default function Register() {
       return
     }
 
-    if ((formData.role === 'admin' || formData.role === 'analyst') && !formData.invite_code) {
-      setError(`Invite code required for ${formData.role} role`)
+    if (formData.role === 'admin' && !formData.invite_code) {
+      setError('Invite code required for admin role')
       return
     }
 
@@ -75,8 +75,6 @@ export default function Register() {
         return 'bg-army-maroon text-white border-army-maroon'
       case 'analyst':
         return 'bg-army-olive text-white border-army-olive'
-      default:
-        return 'bg-army-gold text-army-olive-dark border-army-gold'
     }
   }
 
@@ -88,8 +86,8 @@ export default function Register() {
           <div className="w-20 h-20 mx-auto mb-4 bg-army-olive rounded-xl flex items-center justify-center shadow-lg">
             <Shield className="w-12 h-12 text-army-gold" />
           </div>
-          <h1 className="text-2xl font-bold text-army-olive font-['Roboto_Condensed'] uppercase tracking-wide">
-            GeoNews Intelligence
+          <h1 className="text-3xl font-bold text-army-olive tracking-wide">
+            प्रज्ञा
           </h1>
           <p className="text-gray-600 mt-1">Create your secure account</p>
         </div>
@@ -176,8 +174,8 @@ export default function Register() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
                   Access Level
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['viewer', 'analyst', 'admin'] as Role[]).map((role) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {(['analyst', 'admin'] as Role[]).map((role) => (
                     <button
                       key={role}
                       type="button"
@@ -189,17 +187,16 @@ export default function Register() {
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  {formData.role === 'viewer' && 'Standard access - View intelligence reports'}
-                  {formData.role === 'analyst' && 'Analyst access - Create alerts (invite code required)'}
-                  {formData.role === 'admin' && 'Command access - Full system control (invite code required)'}
+                  {formData.role === 'analyst' && 'Analyst access - Create and manage alerts'}
+                  {formData.role === 'admin' && 'Admin access - Full system control (invite code required)'}
                 </p>
               </div>
 
-              {/* Invite Code */}
-              {(formData.role === 'admin' || formData.role === 'analyst') && (
+              {/* Invite Code - Only for Admin */}
+              {formData.role === 'admin' && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-                    Invite Code *
+                    Admin Invite Code *
                   </label>
                   <input
                     type="text"
@@ -207,11 +204,11 @@ export default function Register() {
                     value={formData.invite_code}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-army-sand/30 border-2 border-army-khaki/50 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-army-olive focus:ring-2 focus:ring-army-olive/20"
-                    placeholder="Enter authorization code"
+                    placeholder="Enter admin authorization code"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Contact command for authorization code
+                    Contact administrator for invite code
                   </p>
                 </div>
               )}

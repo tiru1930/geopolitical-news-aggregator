@@ -110,6 +110,20 @@ export const getHotspots = async (): Promise<Hotspot[]> => {
   return response.data
 }
 
+export interface CountryHotspot {
+  country: string
+  lat: number
+  lng: number
+  total_articles: number
+  high_relevance: number
+  intensity: number
+}
+
+export const getCountryHotspots = async (limit: number = 30): Promise<CountryHotspot[]> => {
+  const response = await api.get(`/api/dashboard/country-hotspots?limit=${limit}`)
+  return response.data
+}
+
 export const getRecentHighImpact = async (limit: number = 5): Promise<Article[]> => {
   const response = await api.get(`/api/dashboard/recent-high-impact?limit=${limit}`)
   return response.data
@@ -163,7 +177,7 @@ export interface RegisterData {
   password: string
   full_name?: string
   organization?: string
-  role?: 'admin' | 'analyst' | 'viewer'
+  role?: 'admin' | 'analyst'
   invite_code?: string
 }
 
@@ -178,7 +192,7 @@ export interface User {
   username: string
   full_name: string | null
   organization: string | null
-  role: 'admin' | 'analyst' | 'viewer'
+  role: 'admin' | 'analyst'
   is_active: boolean
   is_verified: boolean
   preferred_regions: string | null

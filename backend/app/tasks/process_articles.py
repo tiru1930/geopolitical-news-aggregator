@@ -51,20 +51,32 @@ def process_pending_articles(self, batch_size: int = 10):
 
                         # Update classification from LLM
                         classification = llm_result.get("classification", {})
-                        article.region = classification.get("region", "Global")
-                        article.country = classification.get("country", "")
-                        article.theme = classification.get("theme", "General Security")
-                        article.domain = classification.get("domain", "multi-domain")
 
-                        # Calculate component scores using keywords (for display)
+                        # Calculate component scores and keyword-based classification (for fallback)
                         keyword_scores = keyword_scorer.calculate_scores(article.title, content)
+                        keyword_classification = keyword_scorer.extract_region_theme(article.title, content)
+
                         article.geo_score = keyword_scores["geo_score"]
                         article.military_score = keyword_scores["military_score"]
                         article.diplomatic_score = keyword_scores["diplomatic_score"]
                         article.economic_score = keyword_scores["economic_score"]
 
+                        # Hybrid approach: use LLM values, but fallback to keywords if LLM returns empty
+                        llm_region = classification.get("region", "").strip()
+                        llm_country = classification.get("country", "").strip()
+                        llm_theme = classification.get("theme", "").strip()
+                        llm_domain = classification.get("domain", "").strip()
+
+                        article.region = llm_region if llm_region and llm_region != "Global" else keyword_classification.get("region", "Global")
+                        article.country = llm_country if llm_country else keyword_classification.get("country", "")
+                        article.theme = llm_theme if llm_theme else keyword_classification.get("theme", "General Security")
+                        article.domain = llm_domain if llm_domain else keyword_classification.get("domain", "multi-domain")
+
+                        # Set priority flag for India and neighbors
+                        article.is_priority = llm_result.get("involves_priority_country", False) or keyword_scores.get("is_priority", False)
+
                         llm_scored_count += 1
-                        logger.debug(f"LLM scored article {article.id}: {llm_result['relevance_level']} ({llm_result['relevance_score']})")
+                        logger.debug(f"LLM scored article {article.id}: {llm_result['relevance_level']} ({llm_result['relevance_score']}) - {article.country}/{article.region} - Priority: {article.is_priority}")
 
                     except Exception as e:
                         logger.warning(f"LLM scoring failed for article {article.id}, using keywords: {e}")
@@ -76,6 +88,7 @@ def process_pending_articles(self, batch_size: int = 10):
                         article.economic_score = scores["economic_score"]
                         article.relevance_score = scores["relevance_score"]
                         article.relevance_level = RelevanceLevel(scores["relevance_level"])
+                        article.is_priority = scores.get("is_priority", False)
 
                         classification = keyword_scorer.extract_region_theme(article.title, content)
                         article.region = classification.get("region")
@@ -91,6 +104,7 @@ def process_pending_articles(self, batch_size: int = 10):
                     article.economic_score = scores["economic_score"]
                     article.relevance_score = scores["relevance_score"]
                     article.relevance_level = RelevanceLevel(scores["relevance_level"])
+                    article.is_priority = scores.get("is_priority", False)
 
                     classification = keyword_scorer.extract_region_theme(article.title, content)
                     article.region = classification.get("region")

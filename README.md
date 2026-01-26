@@ -1,11 +1,11 @@
-# GeoNews Intelligence
+# प्रज्ञा (Pragna)
 ## AI-Powered Geopolitical News Aggregator
 
 A production-ready, Docker-based news aggregation platform with AI-powered strategic analysis. Designed for analysts, researchers, policy experts, and think-tank members.
 
 **Features:**
 - Clean, professional UI theme (light mode)
-- Role-based access control (Admin, Analyst, Viewer)
+- Role-based access control (Admin, Analyst)
 - AI-powered strategic summaries using Groq/Llama 3.1
 - Interactive geopolitical map
 - Custom alerts system
@@ -112,11 +112,10 @@ Use these pre-configured accounts for testing:
 
 | Role | Description | Invite Code |
 |------|-------------|-------------|
-| **Viewer** | Read-only access to all intelligence reports | Not required |
-| **Analyst** | Create alerts + all Viewer permissions | `GEONEWS-ANALYST-2024` |
-| **Admin** | Full access including source management | `GEONEWS-ADMIN-2024` |
+| **Analyst** | Create and manage alerts, view all reports | Not required |
+| **Admin** | Full access including source management | `PRAGNA-ADMIN-2024` |
 
-**Note:** Keep invite codes secure. Change them in production by editing `backend/app/api/auth.py`.
+**Note:** Keep admin invite code secure. Change it in production by editing `backend/app/api/auth.py`.
 
 ---
 
@@ -724,5 +723,5 @@ Contributions are welcome! Please ensure any new sources added are:
 
 ---
 
-**GeoNews Intelligence v1.0.0**
-*Geopolitical Intelligence Platform*
+**प्रज्ञा v1.0.0**
+*Geopolitical News Aggregator*

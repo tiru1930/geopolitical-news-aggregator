@@ -80,14 +80,13 @@ async def get_current_user_from_token(
     return user
 
 
-# Invite codes for privileged roles
-ADMIN_INVITE_CODE = "GEONEWS-ADMIN-2024"
-ANALYST_INVITE_CODE = "GEONEWS-ANALYST-2024"
+# Invite code for admin role only
+ADMIN_INVITE_CODE = "PRAGNA-ADMIN-2024"
 
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user. Admin/Analyst roles require invite codes."""
+    """Register a new user. Admin role requires invite code. Analyst is default."""
     # Check if user exists
     existing_email = db.query(User).filter(User.email == user_data.email).first()
     if existing_email:
@@ -117,16 +116,9 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
                 detail="Invalid admin invite code"
             )
         role = UserRole.ADMIN
-    elif user_data.role == UserRole.ANALYST:
-        # Analyst requires invite code
-        if user_data.invite_code != ANALYST_INVITE_CODE:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid analyst invite code"
-            )
-        role = UserRole.ANALYST
     else:
-        role = UserRole.VIEWER
+        # Default to analyst (no invite code required)
+        role = UserRole.ANALYST
 
     # Create new user
     user = User(
@@ -226,7 +218,7 @@ async def setup_default_accounts(db: Session = Depends(get_db)):
             username="admin",
             hashed_password=get_password_hash("admin123"),
             full_name="System Administrator",
-            organization="GeoNews Intel",
+            organization="Pragna Intel",
             role=UserRole.ADMIN,
             is_active=True,
             is_verified=True,
@@ -252,23 +244,6 @@ async def setup_default_accounts(db: Session = Depends(get_db)):
         db.add(analyst)
         created.append({"username": "analyst", "password": "analyst123", "role": "analyst"})
 
-    # Viewer/Demo account
-    viewer = db.query(User).filter(User.username == "demo").first()
-    if not viewer:
-        viewer = User(
-            email="demo@geonews.local",
-            username="demo",
-            hashed_password=get_password_hash("demo123"),
-            full_name="Demo User",
-            organization="Public Access",
-            role=UserRole.VIEWER,
-            is_active=True,
-            is_verified=True,
-            dark_mode=True
-        )
-        db.add(viewer)
-        created.append({"username": "demo", "password": "demo123", "role": "viewer"})
-
     if created:
         db.commit()
 
@@ -276,8 +251,7 @@ async def setup_default_accounts(db: Session = Depends(get_db)):
         "message": f"Created {len(created)} accounts" if created else "Accounts already exist",
         "accounts": created if created else [
             {"username": "admin", "role": "admin"},
-            {"username": "analyst", "role": "analyst"},
-            {"username": "demo", "role": "viewer"}
+            {"username": "analyst", "role": "analyst"}
         ]
     }
 
@@ -315,7 +289,7 @@ async def update_user_role(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid role. Must be one of: admin, analyst, viewer"
+            detail=f"Invalid role. Must be one of: admin, analyst"
         )
 
 

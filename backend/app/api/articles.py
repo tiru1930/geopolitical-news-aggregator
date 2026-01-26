@@ -73,8 +73,9 @@ async def get_articles(
     # Get total count
     total = query.count()
 
-    # Apply pagination and ordering
+    # Apply pagination and ordering - Priority articles (India & neighbors) first
     articles = query.order_by(
+        desc(Article.is_priority),  # Priority articles first
         desc(Article.relevance_score),
         desc(Article.published_at)
     ).offset((page - 1) * page_size).limit(page_size).all()
@@ -103,6 +104,7 @@ async def get_articles(
             military_score=article.military_score or 0.0,
             diplomatic_score=article.diplomatic_score or 0.0,
             economic_score=article.economic_score or 0.0,
+            is_priority=article.is_priority or False,
             region=article.region,
             country=article.country,
             theme=article.theme,
@@ -130,11 +132,12 @@ async def get_high_relevance_articles(
     limit: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db)
 ):
-    """Get top high-relevance articles"""
+    """Get top high-relevance articles - India & neighbors prioritized"""
     articles = db.query(Article).filter(
         Article.is_processed == 1,
         Article.relevance_level == RelevanceLevel.HIGH
     ).order_by(
+        desc(Article.is_priority),  # Priority articles first
         desc(Article.relevance_score),
         desc(Article.published_at)
     ).limit(limit).all()
@@ -162,6 +165,7 @@ async def get_high_relevance_articles(
             military_score=article.military_score or 0.0,
             diplomatic_score=article.diplomatic_score or 0.0,
             economic_score=article.economic_score or 0.0,
+            is_priority=article.is_priority or False,
             region=article.region,
             country=article.country,
             theme=article.theme,
@@ -205,6 +209,7 @@ async def get_article(article_id: int, db: Session = Depends(get_db)):
         military_score=article.military_score or 0.0,
         diplomatic_score=article.diplomatic_score or 0.0,
         economic_score=article.economic_score or 0.0,
+        is_priority=article.is_priority or False,
         region=article.region,
         country=article.country,
         theme=article.theme,

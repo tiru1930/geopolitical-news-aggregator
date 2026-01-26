@@ -7,7 +7,6 @@ from enum import Enum
 class UserRole(str, Enum):
     ADMIN = "admin"
     ANALYST = "analyst"
-    VIEWER = "viewer"
 
 
 class UserBase(BaseModel):
@@ -19,8 +18,8 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: Optional[UserRole] = UserRole.VIEWER
-    invite_code: Optional[str] = None  # Required for admin/analyst roles
+    role: Optional[UserRole] = UserRole.ANALYST
+    invite_code: Optional[str] = None  # Required for admin role
 
 
 class UserUpdate(BaseModel):

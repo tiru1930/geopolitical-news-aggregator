@@ -34,11 +34,11 @@ export default function Sidebar() {
           <Shield className="w-7 h-7 text-army-olive-dark" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-white font-['Roboto_Condensed'] tracking-wide">
-            GEONEWS
+          <h1 className="text-xl font-bold text-white tracking-wide">
+            प्रज्ञा
           </h1>
           <p className="text-xs text-army-khaki-light uppercase tracking-wider">
-            Intelligence Platform
+            News Aggregator
           </p>
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-army-olive-light/20 bg-army-olive-dark/30">
         <div className="px-2 text-xs text-army-khaki-light">
-          <p className="font-semibold uppercase tracking-wide">GeoNews Intelligence</p>
+          <p className="font-semibold tracking-wide">प्रज्ञा</p>
           <p className="mt-1 opacity-70">v1.0.0 | Strategic Platform</p>
         </div>
       </div>
