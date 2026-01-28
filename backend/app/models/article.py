@@ -36,6 +36,7 @@ class Article(Base):
     source = relationship("Source", back_populates="articles")
 
     # AI-generated content
+    summary_bullets = Column(Text, nullable=True)  # 5-line bullet point summary
     summary_what_happened = Column(Text, nullable=True)
     summary_why_matters = Column(Text, nullable=True)
     summary_india_implications = Column(Text, nullable=True)

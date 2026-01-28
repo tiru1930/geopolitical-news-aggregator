@@ -10,6 +10,7 @@ export interface Article {
   image_url?: string
   source_id: number
   source_name?: string
+  summary_bullets?: string
   summary_what_happened?: string
   summary_why_matters?: string
   summary_india_implications?: string
@@ -20,6 +21,7 @@ export interface Article {
   military_score: number
   diplomatic_score: number
   economic_score: number
+  is_priority?: boolean
   region?: string
   country?: string
   theme?: string

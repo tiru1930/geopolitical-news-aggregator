@@ -112,21 +112,24 @@ def process_pending_articles(self, batch_size: int = 10):
                     article.theme = classification.get("theme")
                     article.domain = classification.get("domain")
 
-                # Generate AI summaries for HIGH relevance articles
-                if article.relevance_level == RelevanceLevel.HIGH and settings.groq_api_key:
+                # Generate AI summaries based on relevance level
+                if settings.groq_api_key:
                     try:
                         analyzer = get_ai_analyzer()
-                        analysis = analyzer.analyze_article(article.title, content)
 
-                        # Update summaries
-                        summary = analysis.get("summary", {})
-                        article.summary_what_happened = summary.get("what_happened", "")
-                        article.summary_why_matters = summary.get("why_matters", "")
-                        article.summary_india_implications = summary.get("india_implications", "")
-                        article.summary_future_developments = summary.get("future_developments", "")
-
-                        # Update entities
-                        article.entities = analysis.get("entities", [])
+                        # HIGH relevance: full analysis (bullets + strategic summary + entities)
+                        if article.relevance_level == RelevanceLevel.HIGH:
+                            analysis = analyzer.analyze_article(article.title, content)
+                            summary = analysis.get("summary", {})
+                            article.summary_bullets = summary.get("bullets", "")
+                            article.summary_what_happened = summary.get("what_happened", "")
+                            article.summary_why_matters = summary.get("why_matters", "")
+                            article.summary_india_implications = summary.get("india_implications", "")
+                            article.summary_future_developments = summary.get("future_developments", "")
+                            article.entities = analysis.get("entities", [])
+                        else:
+                            # MEDIUM and LOW: just bullet summary (lighter processing, saves API costs)
+                            article.summary_bullets = analyzer.generate_bullet_summary(article.title, content)
 
                         ai_summarized_count += 1
 

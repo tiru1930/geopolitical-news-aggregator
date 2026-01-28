@@ -66,13 +66,71 @@ class AIAnalyzer:
         else:
             raise ValueError(f"Unknown LLM provider: {self.provider}")
 
+    def generate_bullet_summary(self, title: str, content: str) -> str:
+        """
+        Generate a concise 5-line bullet point summary of the news article.
+
+        Returns:
+            String with bullet points separated by newlines
+        """
+        system_prompt = """You are a news summarizer. Create concise, factual bullet point summaries.
+Keep each bullet point brief (max 15 words). Focus on key facts only."""
+
+        prompt = f"""Summarize this news article in exactly 5 bullet points.
+
+Title: {title}
+
+Content: {content[:2500]}
+
+Rules:
+- Exactly 5 bullet points
+- Each bullet starts with "• "
+- Max 15 words per bullet
+- Focus on: Who, What, Where, When, Why/Impact
+- Be factual, no opinions
+- No attribution needed
+
+Example format:
+• First key point about the news
+• Second important fact
+• Third relevant detail
+• Fourth significant point
+• Fifth takeaway or impact
+
+Respond with ONLY the 5 bullet points, nothing else:"""
+
+        try:
+            response = self._call_llm(prompt, system_prompt)
+
+            # Clean up response
+            lines = response.strip().split('\n')
+            bullets = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    # Ensure bullet format
+                    if not line.startswith('•'):
+                        line = '• ' + line.lstrip('- *>')
+                    bullets.append(line)
+
+            # Take only first 5 bullets
+            bullets = bullets[:5]
+
+            return '\n'.join(bullets) if bullets else ""
+        except Exception as e:
+            logger.error(f"Error generating bullet summary: {e}")
+            return ""
+
     def generate_strategic_summary(self, title: str, content: str) -> Dict[str, str]:
         """
         Generate a structured strategic summary for a news article.
 
         Returns:
-            Dict with keys: what_happened, why_matters, india_implications, future_developments
+            Dict with keys: bullets, what_happened, why_matters, india_implications, future_developments
         """
+        # First generate bullet summary
+        bullets = self.generate_bullet_summary(title, content)
+
         system_prompt = """You are a strategic analyst specializing in geopolitical and defense affairs.
 Your task is to analyze news articles and provide concise, professional summaries suitable for
 defense analysts, military officers, and policy researchers.
@@ -114,6 +172,7 @@ If the article has no relevance to India, still provide analysis but note limite
             result = json.loads(response.strip())
 
             return {
+                "bullets": bullets,
                 "what_happened": result.get("what_happened", ""),
                 "why_matters": result.get("why_matters", ""),
                 "india_implications": result.get("india_implications", ""),
@@ -123,6 +182,7 @@ If the article has no relevance to India, still provide analysis but note limite
             logger.error(f"Failed to parse LLM response as JSON: {e}")
             # Return empty summary on parse error
             return {
+                "bullets": bullets,
                 "what_happened": "",
                 "why_matters": "",
                 "india_implications": "",

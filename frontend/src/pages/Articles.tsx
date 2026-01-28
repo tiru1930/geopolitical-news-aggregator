@@ -172,6 +172,11 @@ export default function Articles() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <RelevanceBadge level={article.relevance_level} size="sm" />
+                      {article.is_priority && (
+                        <span className="text-xs text-white font-semibold px-2 py-0.5 bg-army-maroon rounded">
+                          PRIORITY
+                        </span>
+                      )}
                       {article.region && (
                         <span className="text-xs text-army-olive font-medium px-2 py-0.5 bg-army-sand rounded">
                           {article.region}
@@ -186,7 +191,13 @@ export default function Articles() {
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">
                       {article.title}
                     </h3>
-                    {article.summary_what_happened && (
+                    {article.summary_bullets ? (
+                      <div className="text-gray-600 text-sm space-y-1">
+                        {article.summary_bullets.split('\n').slice(0, 2).map((bullet, idx) => (
+                          <p key={idx} className="line-clamp-1">{bullet}</p>
+                        ))}
+                      </div>
+                    ) : article.summary_what_happened && (
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {article.summary_what_happened}
                       </p>

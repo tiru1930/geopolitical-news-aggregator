@@ -36,6 +36,12 @@ def run_migrations():
             "migrate": "ALTER TABLE articles ADD COLUMN is_priority BOOLEAN DEFAULT FALSE",
             "description": "Add is_priority column to articles"
         },
+        # Add summary_bullets column to articles table
+        {
+            "check": "SELECT column_name FROM information_schema.columns WHERE table_name='articles' AND column_name='summary_bullets'",
+            "migrate": "ALTER TABLE articles ADD COLUMN summary_bullets TEXT",
+            "description": "Add summary_bullets column to articles"
+        },
     ]
 
     with engine.connect() as conn:

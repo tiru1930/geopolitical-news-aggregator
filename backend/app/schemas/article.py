@@ -36,6 +36,7 @@ class ArticleResponse(ArticleBase):
     source_name: Optional[str] = None
 
     # AI-generated summaries
+    summary_bullets: Optional[str] = None  # 5-line bullet point summary
     summary_what_happened: Optional[str] = None
     summary_why_matters: Optional[str] = None
     summary_india_implications: Optional[str] = None

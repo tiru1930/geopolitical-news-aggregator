@@ -94,6 +94,7 @@ async def get_articles(
             image_url=article.image_url,
             source_id=article.source_id,
             source_name=source.name if source else None,
+            summary_bullets=article.summary_bullets,
             summary_what_happened=article.summary_what_happened,
             summary_why_matters=article.summary_why_matters,
             summary_india_implications=article.summary_india_implications,
@@ -155,6 +156,7 @@ async def get_high_relevance_articles(
             image_url=article.image_url,
             source_id=article.source_id,
             source_name=source.name if source else None,
+            summary_bullets=article.summary_bullets,
             summary_what_happened=article.summary_what_happened,
             summary_why_matters=article.summary_why_matters,
             summary_india_implications=article.summary_india_implications,
@@ -199,6 +201,7 @@ async def get_article(article_id: int, db: Session = Depends(get_db)):
         image_url=article.image_url,
         source_id=article.source_id,
         source_name=source.name if source else None,
+        summary_bullets=article.summary_bullets,
         summary_what_happened=article.summary_what_happened,
         summary_why_matters=article.summary_why_matters,
         summary_india_implications=article.summary_india_implications,
@@ -247,3 +250,47 @@ async def get_themes(db: Session = Depends(get_db)):
     ).group_by(Article.theme).all()
 
     return [{"theme": t[0], "count": t[1]} for t in results if t[0]]
+
+
+@router.post("/reprocess-all")
+async def reprocess_all_articles(db: Session = Depends(get_db)):
+    """
+    Mark all articles for reprocessing.
+    They will be reprocessed by the background worker.
+    """
+    try:
+        # Reset is_processed to 0 for all articles
+        count = db.query(Article).filter(Article.is_processed == 1).update({
+            Article.is_processed: 0
+        })
+        db.commit()
+        return {
+            "status": "success",
+            "message": f"Marked {count} articles for reprocessing",
+            "articles_queued": count
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/reprocess-without-summary")
+async def reprocess_articles_without_summary(db: Session = Depends(get_db)):
+    """
+    Reprocess only articles that don't have bullet summaries yet.
+    """
+    try:
+        # Find articles without bullet summary
+        count = db.query(Article).filter(
+            Article.is_processed == 1,
+            (Article.summary_bullets.is_(None)) | (Article.summary_bullets == "")
+        ).update({
+            Article.is_processed: 0
+        })
+        db.commit()
+        return {
+            "status": "success",
+            "message": f"Marked {count} articles for reprocessing",
+            "articles_queued": count
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

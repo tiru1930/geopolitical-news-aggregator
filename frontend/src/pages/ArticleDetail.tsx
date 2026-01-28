@@ -105,8 +105,25 @@ export default function ArticleDetail() {
         </a>
       </div>
 
+      {/* Quick Summary - Bullet Points */}
+      {article.summary_bullets && (
+        <div className="bg-army-olive/5 rounded-xl p-6 border-2 border-army-olive/20 shadow-sm">
+          <h2 className="text-lg font-bold text-army-olive font-['Roboto_Condensed'] uppercase tracking-wide mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Quick Summary
+          </h2>
+          <div className="space-y-2">
+            {article.summary_bullets.split('\n').map((bullet, index) => (
+              <p key={index} className="text-gray-800 leading-relaxed">
+                {bullet}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Strategic Analysis */}
-      {article.is_processed === 1 && (
+      {article.is_processed === 1 && (article.summary_what_happened || article.summary_why_matters) && (
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-army-olive font-['Roboto_Condensed'] uppercase tracking-wide">
             Strategic Analysis
