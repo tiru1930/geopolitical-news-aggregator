@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # AI/LLM Configuration
     groq_api_key: str = ""
     llm_provider: str = "groq"  # groq or ollama
-    llm_model: str = "llama-3.1-8b-instant"  # Smaller model for scoring (less tokens)
+    llm_model: str = "openai/gpt-oss-120b"  # Smaller model for scoring (less tokens)
     llm_model_large: str = "llama-3.3-70b-versatile"  # Larger model for summaries
     ollama_base_url: str = "http://localhost:11434"  # For future Ollama support
 

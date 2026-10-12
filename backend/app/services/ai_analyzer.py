@@ -29,13 +29,33 @@ class AIAnalyzer:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": (
+                        system_prompt
+                        + "\n\nReturn a single valid JSON object. "
+                        "Use double quotes for all JSON keys and strings. "
+                        "Do not include Markdown fences or extra commentary."
+                    )},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
                 max_tokens=2000
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("Groq returned an empty response")
+
+            # Verify JSON before returning it to the existing parser.
+            import json
+            try:
+                json.loads(content)
+            except json.JSONDecodeError:
+                logger.error(
+                    "Groq returned invalid JSON. Response: %r",
+                    content
+                )
+                raise
+
+            return content
         except Exception as e:
             logger.error(f"Groq API error: {e}")
             raise
